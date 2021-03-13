@@ -4,6 +4,9 @@
 
 using namespace std;
 
+auto read_all(const fs::path& p, size_t& fsize) -> std::unique_ptr<std::byte[]> {
+    return nullptr;
+}
 // static VKAPI_ATTR VkBool32 VKAPI_CALL
 // on_debug_message(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
 //                  VkDebugUtilsMessageTypeFlagsEXT mtype,
@@ -387,6 +390,8 @@ vulkan_shader_module_t::vulkan_shader_module_t(VkDevice _device, const fs::path 
     VkShaderModuleCreateInfo info{};
     info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     const auto blob = read_all(fpath, info.codeSize);
+    if (blob == nullptr)
+        throw std::runtime_error{"failed to read file"};
     info.pCode = reinterpret_cast<const uint32_t*>(blob.get());
     if (auto ec = vkCreateShaderModule(device, &info, nullptr, &handle))
         throw vulkan_exception_t{ec, "vkCreateShaderModule"};

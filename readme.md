@@ -43,4 +43,5 @@
 * https://github.com/google/angle (mirror of https://chromium.googlesource.com/angle/angle)
 * https://github.com/microsoft/angle/wiki
 * https://github.com/SaschaWillems/openglcpp/tree/master/eglExample
+* https://www.saschawillems.de/blog/2015/04/19/using-opengl-es-on-windows-desktops-via-egl/
 * ...

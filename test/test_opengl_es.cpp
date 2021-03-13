@@ -481,7 +481,6 @@ TEST_CASE_METHOD(glfw_test_case, "PixelBufferObject", "[opengl][glfw]") {
 
 #if FALSE
 TEST_CASE("OpenGL readback_t", "[opengl][glfw]") {
-    auto stream = get_current_stream();
     auto on_return = start_opengl_test();
     auto window = create_opengl_window("GLFW3");
     if (window == nullptr) {

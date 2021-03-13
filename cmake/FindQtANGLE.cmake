@@ -49,7 +49,7 @@ find_path(QtANGLE_INCLUDE_DIR NAMES QtANGLE PATHS ${Qt5OpenGL_INCLUDE_DIRS} NO_D
 if(QtANGLE_INCLUDE_DIR_FOUND)
     # If we found QtANGLE folder, use it without any concern.
     get_filename_component(QtANGLE_INCLUDE_DIR ${QtANGLE_INCLUDE_DIR}/QtANGLE ABSOLUTE)
-elseif(Qt5_DIR MATCHES Anaconda3)
+elseif(Qt5_DIR MATCHES [Aa]naconda3)
     # Anaconda Qt 5.9 has a different include dir
     # EGL 1.4 + OpenGL ES 3.0
     get_filename_component(QtANGLE_INCLUDE_DIR ${QtANGLE_ROOT_DIR}/include/qt/QtANGLE ABSOLUTE)

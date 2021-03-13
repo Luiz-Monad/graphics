@@ -12,15 +12,29 @@ if(NOT DEFINED CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION)
     set(CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION "10.0.17763.0")
 endif()
 
-add_library(graphics
-    include/graphics.h
-    src/main.cpp
-    src/context.cpp
-    src/programs.cpp
-    # src/opengl_1.h
-    # src/opengl.cpp
-    # src/opengl_es.cpp
-)
+find_package(spdlog CONFIG REQUIRED)
+find_package(Microsoft.GSL CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED) # find_path(TINYGLTF_INCLUDE_DIRS "tiny_gltf.h")
+if(WIN32)
+    find_package(directxtk CONFIG REQUIRED)
+    find_package(directxtex CONFIG REQUIRED)
+endif()
+
+if(WIN32)
+    add_library(graphics
+        include/graphics.h
+        src/main.cpp
+        src/context.cpp
+        src/programs.cpp
+    )
+
+elseif(APPLE)
+    add_library(graphics
+        src/opengl_1.h
+        src/opengl_1.cpp
+    )
+
+endif()
 
 set_target_properties(graphics
 PROPERTIES
@@ -28,12 +42,6 @@ PROPERTIES
     WINDOWS_EXPORT_ALL_SYMBOLS  true # todo: remove this
     PUBLIC_HEADER include/graphics.h
 )
-
-find_package(spdlog CONFIG REQUIRED)
-find_package(Microsoft.GSL CONFIG REQUIRED)
-find_package(nlohmann_json CONFIG REQUIRED) # find_path(TINYGLTF_INCLUDE_DIRS "tiny_gltf.h")
-find_package(directxtk CONFIG REQUIRED)
-find_package(directxtex CONFIG REQUIRED)
 
 target_include_directories(graphics
 PUBLIC
@@ -58,28 +66,39 @@ PRIVATE
 target_link_libraries(graphics
 PUBLIC
     Microsoft.GSL::GSL spdlog::spdlog
-    Microsoft::DirectXTK Microsoft::DirectXTex
-    windowsapp windowscodecs
 )
+if(WIN32)
+    target_link_libraries(graphics
+    PUBLIC
+        Microsoft::DirectXTK Microsoft::DirectXTex
+        windowsapp windowscodecs
+    )
+    target_link_options(graphics
+    PRIVATE
+        /ERRORREPORT:SEND # /APPCONTAINER # for UWP
+    )
+endif()
 
-target_link_options(graphics
-PRIVATE
-    /ERRORREPORT:SEND
-    # /APPCONTAINER # for UWP
-)
+if(CMAKE_CXX_COMPILER_ID MATCHES Clang)
+    target_compile_options(graphics
+    PRIVATE
+        -Wall -Wextra -fcoroutines-ts
+    )
 
-target_compile_options(graphics
-PUBLIC
-    /std:c++17 /Zc:__cplusplus
-PRIVATE
-    /W4 /bigobj /await /errorReport:send
-)
+elseif(MSVC)
+    target_compile_options(graphics
+    PUBLIC
+        /std:c++17 /Zc:__cplusplus
+    PRIVATE
+        /W4 /bigobj /await /errorReport:send
+    )
+    target_compile_definitions(graphics
+    PUBLIC
+        WIN32_LEAN_AND_MEAN NOMINMAX
+        GL_GLEXT_PROTOTYPES EGL_EGLEXT_PROTOTYPES
+    )
 
-target_compile_definitions(graphics
-PUBLIC
-    WIN32_LEAN_AND_MEAN NOMINMAX
-    GL_GLEXT_PROTOTYPES EGL_EGLEXT_PROTOTYPES
-)
+endif()
 
 if(DEFINED ENV{Qt5_DIR} OR DEFINED Qt5_DIR)
     list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
@@ -93,12 +112,18 @@ if(DEFINED ENV{Qt5_DIR} OR DEFINED Qt5_DIR)
     file(COPY ${QtANGLE_EGL_LOCATION} ${QtANGLE_EGL_PDB_LOCATION} ${QtANGLE_GLES_LOCATION} ${QtANGLE_GLES_PDB_LOCATION} DESTINATION ${CMAKE_BINARY_DIR})
     message(STATUS "Copied QtANGLE: ${CMAKE_BINARY_DIR}, ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}")
 
-else()
+elseif(WIN32)
     message(STATUS "Using ANGLE: ${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}")
     find_package(unofficial-angle CONFIG REQUIRED)
     target_link_libraries(graphics
     PUBLIC
         unofficial::angle::libEGL unofficial::angle::libGLESv2 
+    )
+
+elseif(APPLE)
+    target_link_libraries(graphics
+    PUBLIC
+        "-framework OpenGL"
     )
 
 endif()
@@ -109,6 +134,13 @@ if(Vulkan_FOUND)
     PUBLIC
         Vulkan::Vulkan
     )
+    target_sources(graphics
+    PRIVATE
+        include/vulkan_1.h    
+        src/vulkan_1.cpp
+        src/vulkan.cpp
+    )
+
     # find_package(glslang CONFIG REQUIRED)
     find_program(glslc_path
         NAMES   glslc.exe glslc
@@ -159,15 +191,33 @@ find_package(glfw3 3.3 CONFIG REQUIRED)
 find_package(Catch2 CONFIG REQUIRED)
 
 add_executable(graphics_test_suite
-    test/test_main.cpp
     test/test_gltf.cpp
-    test/test_directx.cpp
-    test/test_opengl_es.cpp
-    # test/test_vulkan_device.cpp
-    # test/test_vulkan_surface_glfw.cpp
-    # test/test_vulkan_pipeline.cpp
-    # test/test_vulkan_descriptor_set.cpp
 )
+if(WIN32)
+    target_sources(graphics_test_suite
+    PRIVATE
+        test/test_main.cpp
+        test/test_directx.cpp
+        test/test_opengl_es.cpp
+    )
+
+elseif(APPLE)
+    target_sources(graphics_test_suite
+    PRIVATE
+        test/test_darwin.cpp
+    )
+
+endif()
+
+if(Vulkan_FOUND)
+    target_sources(graphics_test_suite
+    PRIVATE
+        test/test_vulkan_device.cpp
+        test/test_vulkan_surface_glfw.cpp
+        # test/test_vulkan_pipeline.cpp
+        # test/test_vulkan_descriptor_set.cpp
+    )
+endif()
 if(QtANGLE_FOUND)
     target_sources(graphics_test_suite
     PRIVATE
@@ -191,10 +241,12 @@ PRIVATE
     graphics glfw Catch2::Catch2 nlohmann_json::nlohmann_json
 )
 
-target_compile_options(graphics_test_suite
-PRIVATE
-    /wd4477 /utf-8
-)
+if(MSVC)
+    target_compile_options(graphics_test_suite
+    PRIVATE
+        /wd4477 /utf-8
+    )
+endif()
 
 target_compile_definitions(graphics_test_suite
 PRIVATE
@@ -204,8 +256,10 @@ PRIVATE
 )
 
 add_test(NAME test_egl COMMAND graphics_test_suite "[egl]")
-add_test(NAME test_windows COMMAND graphics_test_suite "[windows]")
-add_test(NAME test_directx COMMAND graphics_test_suite "[directx]")
+if(WIN32)
+    add_test(NAME test_windows COMMAND graphics_test_suite "[windows]")
+    add_test(NAME test_directx COMMAND graphics_test_suite "[directx]")
+endif()
 if(Vulkan_FOUND)
     add_test(NAME test_vulkan COMMAND graphics_test_suite "[vulkan]")
 endif()

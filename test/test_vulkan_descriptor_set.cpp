@@ -140,7 +140,7 @@ VkResult read_image_data(VkDevice device, const VkPhysicalDeviceMemoryProperties
                          VkExtent2D& extent, int& component,                               //
                          VkBuffer& buffer, VkDeviceMemory& memory,                         //
                          const fs::path& fpath) {
-    auto stream = get_current_stream();
+
     auto fin = open(fpath);
     int width = 0, height = 0;
     component = STBI_rgb_alpha;
@@ -162,10 +162,10 @@ VkResult read_image_data(VkDevice device, const VkPhysicalDeviceMemoryProperties
 
     VkMemoryRequirements requirements{};
     vkGetBufferMemoryRequirements(device, buffer, &requirements);
-    stream->info(" - VkBuffer:");
-    stream->info("   - usage: {:b}", info.usage);
-    stream->info("   - size: {}", requirements.size);
-    stream->info("   - alignment: {}", requirements.alignment);
+    spdlog::info(" - VkBuffer:");
+    spdlog::info("   - usage: {:b}", info.usage);
+    spdlog::info("   - size: {}", requirements.size);
+    spdlog::info("   - alignment: {}", requirements.alignment);
     {
         const auto desired = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
         VkMemoryAllocateInfo info{};
@@ -183,9 +183,9 @@ VkResult read_image_data(VkDevice device, const VkPhysicalDeviceMemoryProperties
         }
         if (auto ec = vkAllocateMemory(device, &info, nullptr, &memory))
             throw vulkan_exception_t{ec, "vkAllocateMemory"};
-        stream->info(" - VkDeviceMemory:");
-        stream->info("   - required: {}", requirements.size);
-        stream->info("   - type_index: {}", info.memoryTypeIndex);
+        spdlog::info(" - VkDeviceMemory:");
+        spdlog::info("   - required: {}", requirements.size);
+        spdlog::info("   - type_index: {}", info.memoryTypeIndex);
     }
     if (auto ec = vkBindBufferMemory(device, buffer, memory, 0))
         return ec;
@@ -200,7 +200,7 @@ VkResult read_image_data(VkDevice device, const VkPhysicalDeviceMemoryProperties
 VkResult make_image(VkDevice device, const VkPhysicalDeviceMemoryProperties& meminfo, //
                     const VkExtent2D& image_extent, VkFormat image_format,            //
                     VkImage& image, VkDeviceMemory& memory) {
-    auto stream = get_current_stream();
+
     VkImageCreateInfo info{};
     info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     info.imageType = VK_IMAGE_TYPE_2D;
@@ -217,13 +217,13 @@ VkResult make_image(VkDevice device, const VkPhysicalDeviceMemoryProperties& mem
         return ec;
     VkMemoryRequirements requirements{};
     vkGetImageMemoryRequirements(device, image, &requirements);
-    stream->info(" - VkImage:");
-    stream->info("   - type: {}", "VK_IMAGE_TYPE_2D");
-    stream->info("   - format: {}", info.format);
-    stream->info("   - mipmap: {}", info.mipLevels);
-    stream->info("   - usage: {:b}", info.usage);
-    stream->info("   - size: {}", requirements.size);
-    stream->info("   - alignment: {}", requirements.alignment);
+    spdlog::info(" - VkImage:");
+    spdlog::info("   - type: {}", "VK_IMAGE_TYPE_2D");
+    spdlog::info("   - format: {}", info.format);
+    spdlog::info("   - mipmap: {}", info.mipLevels);
+    spdlog::info("   - usage: {:b}", info.usage);
+    spdlog::info("   - size: {}", requirements.size);
+    spdlog::info("   - alignment: {}", requirements.alignment);
     {
         VkMemoryAllocateInfo info{};
         info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -241,16 +241,16 @@ VkResult make_image(VkDevice device, const VkPhysicalDeviceMemoryProperties& mem
         }
         if (auto ec = vkAllocateMemory(device, &info, nullptr, &memory))
             return ec;
-        stream->info(" - VkDeviceMemory:");
-        stream->info("   - required: {}", requirements.size);
-        stream->info("   - type_index: {}", info.memoryTypeIndex);
+        spdlog::info(" - VkDeviceMemory:");
+        spdlog::info("   - required: {}", requirements.size);
+        spdlog::info("   - type_index: {}", info.memoryTypeIndex);
     }
     return vkBindImageMemory(device, image, memory, 0);
 }
 
 TEST_CASE("create VkImage from image file", "[image]") {
-    auto stream = get_current_stream();
-    stream->info("VkImage from file:");
+
+    spdlog::info("VkImage from file:");
 
     const char* layers[1]{"VK_LAYER_KHRONOS_validation"};
     vulkan_instance_t instance{"app1", gsl::make_span(layers, 1), {}};
@@ -282,7 +282,7 @@ TEST_CASE("create VkImage from image file", "[image]") {
             vkFreeMemory(device, memories[i], nullptr);
     });
     const auto fpath = get_asset_dir() / "image_1080_608.png";
-    stream->info(" - file: {}", fpath.generic_u8string());
+    spdlog::info(" - file: {}", fpath.generic_u8string());
     VkFormat image_format = VK_FORMAT_R8G8B8A8_UNORM; // VK_FORMAT_R8G8B8A8_SRGB;
     VkExtent2D image_extent{};
     int component{};

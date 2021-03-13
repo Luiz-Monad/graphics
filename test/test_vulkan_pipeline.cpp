@@ -181,7 +181,7 @@ TEST_CASE("Render Offscreen", "[vulkan]") {
 }
 
 TEST_CASE("render single surface", "[vulkan][glfw]") {
-    auto stream = get_current_stream();
+
     auto glfw = open_glfw();
 
     // instance / physical device
@@ -331,7 +331,7 @@ void print_debug(spdlog::logger& stream, const VkSurfaceFormatKHR& format) {
 }
 
 TEST_CASE("render multiple surface", "[vulkan][glfw]") {
-    auto stream = get_current_stream();
+
     auto glfw = open_glfw();
     // instance / physical device
     auto instance = make_vulkan_instance_glfw("instance0");

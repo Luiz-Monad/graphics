@@ -5,7 +5,6 @@
 
 #include <GLFW/glfw3.h>
 
-auto get_current_stream() noexcept -> std::shared_ptr<spdlog::logger>;
 fs::path get_asset_dir() noexcept;
 
 TEST_CASE("GLFW Required Extensions", "[glfw][extension]") {
@@ -21,24 +20,22 @@ TEST_CASE("GLFW Required Extensions", "[glfw][extension]") {
     const char** names = glfwGetRequiredInstanceExtensions(&count);
     REQUIRE(count > 0);
 
-    auto stream = get_current_stream();
-    stream->info("instance_required:");
+    spdlog::info("instance_required:");
     for (auto i = 0u; i < count; ++i)
-        stream->info(" - {}", names[i]);
+        spdlog::info("  - {}", names[i]);
 }
 
 TEST_CASE("Vulkan Instance Layers", "[extension]") {
     uint32_t count = 0;
     REQUIRE(vkEnumerateInstanceLayerProperties(&count, nullptr) == VK_SUCCESS);
-    auto layers = make_unique<VkLayerProperties[]>(count);
+    auto layers = std::make_unique<VkLayerProperties[]>(count);
     REQUIRE(vkEnumerateInstanceLayerProperties(&count, layers.get()) == VK_SUCCESS);
 
-    auto stream = get_current_stream();
-    stream->info("instance_layers:");
+    spdlog::info("instance_layers:");
     for (auto i = 0u; i < count; ++i) {
-        string_view name{layers[i].layerName};
+        std::string_view name{layers[i].layerName};
         const auto spec = layers[i].specVersion;
-        stream->info(" - {}: {:x}", name, spec);
+        spdlog::info(" - {}: {:x}", name, spec);
     }
 }
 
@@ -48,16 +45,15 @@ TEST_CASE("Vulkan Instance Extenstions", "[extension]") {
     REQUIRE(vkEnumerateInstanceExtensionProperties( //
                 layer, &count, nullptr) == VK_SUCCESS);
     REQUIRE(count > 0);
-    auto extensions = make_unique<VkExtensionProperties[]>(count);
+    auto extensions = std::make_unique<VkExtensionProperties[]>(count);
     REQUIRE(vkEnumerateInstanceExtensionProperties( //
                 layer, &count, extensions.get()) == VK_SUCCESS);
 
-    auto stream = get_current_stream();
-    stream->info("instance_extensions:");
+    spdlog::info("instance_extensions:");
     for (auto i = 0u; i < count; ++i) {
-        string_view name{extensions[i].extensionName};
+        std::string_view name{extensions[i].extensionName};
         const auto spec = extensions[i].specVersion;
-        stream->info(" - {}: {:x}", name, spec);
+        spdlog::info(" - {}: {:x}", name, spec);
     }
 }
 
@@ -93,7 +89,7 @@ TEST_CASE("VkInstance with GLFW", "[vulkan][glfw]") {
 #endif
 
 TEST_CASE("VkPhysicalDevice", "[vulkan]") {
-    auto stream = get_current_stream();
+
     vulkan_instance_t instance{__func__, {}, {}};
 
     uint32_t num_devices = 0;
@@ -106,29 +102,29 @@ TEST_CASE("VkPhysicalDevice", "[vulkan]") {
         REQUIRE(device != VK_NULL_HANDLE);
         VkPhysicalDeviceProperties props{};
         vkGetPhysicalDeviceProperties(device, &props);
-        stream->info("physical_device:");
-        stream->info(" - name: {}", props.deviceName);
-        stream->info(" - api: {:x}", props.apiVersion);
-        stream->info(" - driver: {:x}", props.driverVersion);
+        spdlog::info("physical_device:");
+        spdlog::info(" - name: {}", props.deviceName);
+        spdlog::info(" - api: {:x}", props.apiVersion);
+        spdlog::info(" - driver: {:x}", props.driverVersion);
 
         const VkPhysicalDeviceLimits& limits = props.limits;
-        stream->info(" - limits:");
-        stream->info("   - max_bound_descriptor_set: {}", limits.maxBoundDescriptorSets);
-        stream->info("   - max_descriptor_set_input_attachment: {}", limits.maxDescriptorSetInputAttachments);
-        stream->info("   - max_color_attachment: {}", limits.maxColorAttachments);
-        stream->info("   - framebuffer_color_sample_count: {}", limits.framebufferColorSampleCounts);
-        stream->info("   - framebuffer_depth_sample_count: {}", limits.framebufferDepthSampleCounts);
-        stream->info("   - framebuffer_stencil_sample_count: {}", limits.framebufferStencilSampleCounts);
-        stream->info("   - max_framebuffer_width: {}", limits.maxFramebufferWidth);
-        stream->info("   - max_framebuffer_height: {}", limits.maxFramebufferWidth);
-        stream->info("   - max_framebuffer_layers: {}", limits.maxFramebufferLayers);
-        stream->info("   - max_clip_distance: {}", limits.maxClipDistances);
+        spdlog::info(" - limits:");
+        spdlog::info("   - max_bound_descriptor_set: {}", limits.maxBoundDescriptorSets);
+        spdlog::info("   - max_descriptor_set_input_attachment: {}", limits.maxDescriptorSetInputAttachments);
+        spdlog::info("   - max_color_attachment: {}", limits.maxColorAttachments);
+        spdlog::info("   - framebuffer_color_sample_count: {}", limits.framebufferColorSampleCounts);
+        spdlog::info("   - framebuffer_depth_sample_count: {}", limits.framebufferDepthSampleCounts);
+        spdlog::info("   - framebuffer_stencil_sample_count: {}", limits.framebufferStencilSampleCounts);
+        spdlog::info("   - max_framebuffer_width: {}", limits.maxFramebufferWidth);
+        spdlog::info("   - max_framebuffer_height: {}", limits.maxFramebufferWidth);
+        spdlog::info("   - max_framebuffer_layers: {}", limits.maxFramebufferLayers);
+        spdlog::info("   - max_clip_distance: {}", limits.maxClipDistances);
 
         VkPhysicalDeviceMemoryProperties memory{};
         vkGetPhysicalDeviceMemoryProperties(device, &memory);
-        stream->info(" - memory:");
-        stream->info("   - types: {:b}", memory.memoryTypeCount);
-        stream->info("   - heaps: {:b}", memory.memoryHeapCount);
+        spdlog::info(" - memory:");
+        spdlog::info("   - types: {:b}", memory.memoryTypeCount);
+        spdlog::info("   - heaps: {:b}", memory.memoryHeapCount);
 
         uint32_t count = 0;
         vkGetPhysicalDeviceQueueFamilyProperties(device, &count, nullptr);
@@ -136,27 +132,27 @@ TEST_CASE("VkPhysicalDevice", "[vulkan]") {
         vkGetPhysicalDeviceQueueFamilyProperties(device, &count, properties.get());
         REQUIRE(count > 0);
         for (auto i = 0u; i < count; ++i) {
-            stream->info(" - queue_family:");
+            spdlog::info(" - queue_family:");
             const VkQueueFamilyProperties& prop = properties[i];
-            // stream->info("   - count: {}", prop.queueCount);
+            // spdlog::info("   - count: {}", prop.queueCount);
             if (prop.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-                stream->info("   - {}", "GRAPHICS");
+                spdlog::info("   - {}", "GRAPHICS");
             if (prop.queueFlags & VK_QUEUE_COMPUTE_BIT)
-                stream->info("   - {}", "COMPUTE");
+                spdlog::info("   - {}", "COMPUTE");
             if (prop.queueFlags & VK_QUEUE_TRANSFER_BIT)
-                stream->info("   - {}", "TRANSFER");
+                spdlog::info("   - {}", "TRANSFER");
             if (prop.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT)
-                stream->info("   - {}", "SPARSE_BINDING");
+                spdlog::info("   - {}", "SPARSE_BINDING");
             if (prop.queueFlags & VK_QUEUE_PROTECTED_BIT)
-                stream->info("   - {}", "PROTECTED");
+                spdlog::info("   - {}", "PROTECTED");
         }
 
         REQUIRE(vkEnumerateDeviceExtensionProperties(device, nullptr, &count, nullptr) == VK_SUCCESS);
         auto extensions = std::make_unique<VkExtensionProperties[]>(count);
         REQUIRE(vkEnumerateDeviceExtensionProperties(device, nullptr, &count, extensions.get()) == VK_SUCCESS);
-        stream->info(" - extensions:");
+        spdlog::info(" - extensions:");
         for (auto i = 0u; i < count; ++i)
-            stream->info("   - {}", extensions[i].extensionName);
+            spdlog::info("   - {}", extensions[i].extensionName);
     }
 }
 

@@ -1,26 +1,12 @@
 #include <catch2/catch.hpp>
 #include <spdlog/spdlog.h>
 
-#include <graphics.h>
-
-#if defined(_WIN32)
-#include <pplawait.h>
-#include <ppltasks.h>
-#include <winrt/Windows.Foundation.h> // namespace winrt::Windows::Foundation
-#include <winrt/Windows.System.h>     // namespace winrt::Windows::System
-
-// clang-format off
-#include <d3d11_1.h>
-#include <d3dcompiler.h>
-#include <DirectXTex.h>
-#include <DirectXTK/DirectXHelpers.h>
-#include <DirectXTK/WICTextureLoader.h>
-#pragma comment(lib, "d3d11.lib")
-#pragma comment(lib, "d3dcompiler.lib")
-// clang-format on
-#endif
-
-#define LOCAL_EGL_PROC(fn, name) auto fn = reinterpret_cast<decltype(&name)>(eglGetProcAddress(#name));
+#include <QtOpenGL/qgl.h>
+#include <QtOpenGL/qglfunctions.h>
+#if __has_include(<QtANGLE/GLES3/gl3.h>)
+#include <QtANGLE/EGL/egl.h>
+#include <QtANGLE/EGL/eglext.h>
+#include <QtANGLE/GLES3/gl3.h>
 
 /**
  * @brief EGLConfigTestCase for QtANGLE
@@ -92,3 +78,5 @@ TEST_CASE_METHOD(EGLConfigTestCase2, "ChooseConfig", "[egl]") {
         print1(display, configs[i]);
     }
 }
+
+#endif

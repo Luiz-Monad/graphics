@@ -1,57 +1,12 @@
+/**
+ * @author Park DongHa (luncliff@gmail.com)
+ */
 #pragma once
-#include <filesystem>
 #include <gsl/gsl>
-#include <string_view>
-#include <system_error>
-// #include <memory_resource>
+#define GL_SILENCE_DEPRECATION
+#include <OpenGL/OpenGL.h>
+#include <OpenGL/gl3.h>
 
-#if __has_include(<angle_gl.h>)
-#include <angle_gl.h>
-#else
-#define GL_GLEXT_PROTOTYPES
-#include <GLES3/gl3.h>
-#if __has_include(<GLES3/gl31.h>)
-#include <GLES3/gl31.h>
-#endif
-#endif
-#if __has_include(<EGL/egl.h>)
-#ifndef EGL_EGLEXT_PROTOTYPES
-#define EGL_EGLEXT_PROTOTYPES
-#endif
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-
-/**
- * @brief EGL Context and other informations + RAII
- */
-struct egl_helper_t {
-    EGLNativeWindowType native_window{};
-    EGLNativeDisplayType native_display = EGL_DEFAULT_DISPLAY;
-    EGLDisplay display = EGL_NO_DISPLAY;
-    EGLint major = 0, minor = 0;
-    EGLint count = 0;
-    EGLConfig configs[10]{};
-    EGLContext context = EGL_NO_CONTEXT;
-    EGLSurface surface = EGL_NO_SURFACE;
-
-  public:
-    explicit egl_helper_t(EGLNativeDisplayType native) noexcept(false);
-    egl_helper_t(EGLNativeWindowType native, bool is_console) noexcept(false);
-    ~egl_helper_t() noexcept;
-};
-
-#endif // <EGL/egl.h>
-
-namespace fs = std::filesystem;
-
-auto open(const fs::path& p) -> std::unique_ptr<FILE, int (*)(FILE*)>;
-auto create(const fs::path& p) -> std::unique_ptr<FILE, int (*)(FILE*)>;
-
-/**
- * @brief `std::error_category` for `std::system_error` in this module
- * @see   `std::system_error`
- * @see   `std::error_category`
- */
 std::error_category& get_opengl_category() noexcept;
 
 using readback_callback_t = void (*)(void* user_data, const void* mapping, size_t length);

@@ -54,7 +54,7 @@ class vulkan_surface_owner_t final {
 };
 
 TEST_CASE("VkSurfaceKHR + GLFWwindow", "[vulkan][glfw]") {
-    auto stream = get_current_stream();
+
     auto glfw = open_glfw();
     auto instance = make_vulkan_instance_glfw("app0");
     REQUIRE(instance.handle);
@@ -65,37 +65,37 @@ TEST_CASE("VkSurfaceKHR + GLFWwindow", "[vulkan][glfw]") {
     vkGetPhysicalDeviceProperties(physical_device, &props);
 
     vulkan_surface_owner_t surface{"window0", instance.handle, physical_device};
-    stream->info("surface:");
-    stream->info(" - device: {}", props.deviceName);
+    spdlog::info("surface:");
+    spdlog::info(" - device: {}", props.deviceName);
     const auto& capabilities = surface.capabilities;
-    stream->info(" - max_image: {}", capabilities.maxImageCount);
-    stream->info(" - max_extent:");
-    stream->info("   - width : {}", capabilities.maxImageExtent.width);
-    stream->info("   - height: {}", capabilities.maxImageExtent.height);
-    stream->info(" - transforms:");
+    spdlog::info(" - max_image: {}", capabilities.maxImageCount);
+    spdlog::info(" - max_extent:");
+    spdlog::info("   - width : {}", capabilities.maxImageExtent.width);
+    spdlog::info("   - height: {}", capabilities.maxImageExtent.height);
+    spdlog::info(" - transforms:");
     if (capabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)
-        stream->info("   - {}", "IDENTITY");
+        spdlog::info("   - {}", "IDENTITY");
     if (capabilities.supportedTransforms & VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR)
-        stream->info("   - {}", "ROTATE_90");
+        spdlog::info("   - {}", "ROTATE_90");
     if (capabilities.supportedTransforms & VK_SURFACE_TRANSFORM_ROTATE_180_BIT_KHR)
-        stream->info("   - {}", "ROTATE_180");
+        spdlog::info("   - {}", "ROTATE_180");
     if (capabilities.supportedTransforms & VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR)
-        stream->info("   - {}", "ROTATE_270");
+        spdlog::info("   - {}", "ROTATE_270");
     if (capabilities.supportedTransforms & VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_BIT_KHR)
-        stream->info("   - {}", "HORIZONTAL_MIRROR");
+        spdlog::info("   - {}", "HORIZONTAL_MIRROR");
     if (capabilities.supportedTransforms & VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_90_BIT_KHR)
-        stream->info("   - {}", "HORIZONTAL_MIRROR_ROTATE_90");
+        spdlog::info("   - {}", "HORIZONTAL_MIRROR_ROTATE_90");
     if (capabilities.supportedTransforms & VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_180_BIT_KHR)
-        stream->info("   - {}", "HORIZONTAL_MIRROR_ROTATE_180");
+        spdlog::info("   - {}", "HORIZONTAL_MIRROR_ROTATE_180");
     if (capabilities.supportedTransforms & VK_SURFACE_TRANSFORM_HORIZONTAL_MIRROR_ROTATE_270_BIT_KHR)
-        stream->info("   - {}", "HORIZONTAL_MIRROR_ROTATE_270");
-    stream->info(" - composite_alpha:");
+        spdlog::info("   - {}", "HORIZONTAL_MIRROR_ROTATE_270");
+    spdlog::info(" - composite_alpha:");
     if (capabilities.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)
-        stream->info("   - {}", "OPAQUE");
+        spdlog::info("   - {}", "OPAQUE");
     if (capabilities.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR)
-        stream->info("   - {}", "PRE_MULTIPLIED");
+        spdlog::info("   - {}", "PRE_MULTIPLIED");
     if (capabilities.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR)
-        stream->info("   - {}", "POST_MULTIPLIED");
+        spdlog::info("   - {}", "POST_MULTIPLIED");
 
     uint32_t num_formats = 0;
     REQUIRE(vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface.handle, //
@@ -104,9 +104,9 @@ TEST_CASE("VkSurfaceKHR + GLFWwindow", "[vulkan][glfw]") {
     REQUIRE(vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface.handle, //
                                                  &num_formats, formats.get()) == VK_SUCCESS);
     for (auto i = 0u; i < num_formats; ++i) {
-        stream->info(" - format:");
-        stream->info("   - flag: {:x}", formats[i].format);
-        stream->info("   - color_space: {:x}", formats[i].colorSpace);
+        spdlog::info(" - format:");
+        spdlog::info("   - flag: {:x}", formats[i].format);
+        spdlog::info("   - color_space: {:x}", formats[i].colorSpace);
     }
 
     uint32_t num_modes = 0;
@@ -115,14 +115,14 @@ TEST_CASE("VkSurfaceKHR + GLFWwindow", "[vulkan][glfw]") {
     auto modes = make_unique<VkPresentModeKHR[]>(num_modes);
     REQUIRE(vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, surface.handle, //
                                                       &num_modes, modes.get()) == VK_SUCCESS);
-    stream->info(" - modes:");
+    spdlog::info(" - modes:");
     for (auto i = 0u; i < num_modes; ++i) {
-        stream->info("   - {}", modes[i]);
+        spdlog::info("   - {}", modes[i]);
     }
 }
 
 TEST_CASE("VkDevice + VkSurfaceKHR", "[vulkan][glfw]") {
-    auto stream = get_current_stream();
+
     auto glfw = open_glfw();
     auto instance = make_vulkan_instance_glfw("app0");
     REQUIRE(instance.handle);
@@ -187,7 +187,7 @@ TEST_CASE("VkDevice + VkSurfaceKHR", "[vulkan][glfw]") {
 }
 
 TEST_CASE("VkDevice + VkSurfaceKHR[]", "[vulkan][glfw]") {
-    auto stream = get_current_stream();
+
     auto glfw = open_glfw();
     auto instance = make_vulkan_instance_glfw("app0");
     REQUIRE(instance.handle);

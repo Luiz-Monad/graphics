@@ -1,7 +1,23 @@
-#include <graphics.h>
 #include <opengl_1.h>
 
 using namespace std;
+
+class opengl_error_category_t final : public std::error_category {
+    const char* name() const noexcept override {
+        return "OpenGL";
+    }
+    std::string message(int ec) const override {
+        constexpr auto bufsz = 40;
+        char buf[bufsz]{};
+        const auto len = snprintf(buf, bufsz, "error %5d(%4x)", ec, ec);
+        return {buf, static_cast<size_t>(len)};
+    }
+};
+
+opengl_error_category_t errors{};
+std::error_category& get_opengl_category() noexcept {
+    return errors;
+};
 
 opengl_readback_t::opengl_readback_t(GLint w, GLint h) noexcept(false) {
     const auto length = w * h * 4;
